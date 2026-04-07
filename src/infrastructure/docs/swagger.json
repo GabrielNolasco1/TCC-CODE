@@ -1,0 +1,217 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API - Sistema de Solicitações (TCC)",
+    "version": "1.0.0",
+    "description": "Documentação da API com fluxos de Autenticação, 2FA e Gestão de Áreas."
+  },
+  "servers": [
+    { "url": "http://localhost:3000", "description": "Servidor Local" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Area": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/users": {
+      "post": {
+        "summary": "Cria um novo usuário",
+        "tags": ["Usuários"],
+        "description": "### Regras:\n- Se `areaId` for enviado, o usuário será vinculado à área.\n- Retorno inclui `areaName` se o vínculo existir.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "Gabriel" },
+                  "email": { "type": "string", "format": "email", "example": "gabriel@teste.com" },
+                  "password": { "type": "string", "example": "Senha@123" },
+                  "areaId": { "type": "string", "format": "uuid", "example": "123e4567-e89b-12d3-a456-426614174000" }
+                },
+                "required": ["name", "email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Usuário criado com sucesso" },
+          "400": { "description": "Erro de validação ou e-mail já existe" }
+        }
+      }
+    },
+    "/users/login": {
+      "post": {
+        "summary": "Autenticação de Usuário",
+        "tags": ["Usuários"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "example": "gabriel@teste.com" },
+                  "password": { "type": "string", "example": "Senha@123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login realizado. O objeto 'user' agora contém 'areaId' e 'areaName'.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": { "type": "object" },
+                    "token": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/areas": {
+      "get": {
+        "summary": "Lista todas as áreas",
+        "tags": ["Áreas"],
+        "security": [{ "bearerAuth": [] }],
+        "description": "Qualquer usuário autenticado pode listar as áreas.",
+        "responses": {
+          "200": {
+            "description": "Lista de áreas cadastradadas",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Area" } }
+              }
+            }
+          },
+          "401": { "description": "Token inválido ou ausente" }
+        }
+      },
+      "post": {
+        "summary": "Cria uma nova área",
+        "tags": ["Áreas"],
+        "security": [{ "bearerAuth": [] }],
+        "description": "**Privilégio: MASTER.** Cria uma nova unidade/setor no sistema.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "TI - Desenvolvimento" }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Área criada", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Area" } } } },
+          "403": { "description": "Acesso negado (não é MASTER)" }
+        }
+      }
+    },
+    "/areas/{id}": {
+      "patch": {
+        "summary": "Atualiza o nome de uma área",
+        "tags": ["Áreas"],
+        "security": [{ "bearerAuth": [] }],
+        "description": "**Privilégio: MASTER.**",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "name": { "type": "string", "example": "RH - Global" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Área atualizada" },
+          "404": { "description": "Área não encontrada" }
+        }
+      },
+      "delete": {
+        "summary": "Exclui uma área",
+        "tags": ["Áreas"],
+        "security": [{ "bearerAuth": [] }],
+        "description": "**Privilégio: MASTER.** Cuidado: Isso pode afetar usuários vinculados.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "204": { "description": "Área removida com sucesso" },
+          "403": { "description": "Acesso negado" }
+        }
+      }
+    },
+    "/tokens/send": {
+      "post": {
+        "summary": "Gera e envia código de verificação",
+        "tags": ["Tokens (2FA)"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "email": { "type": "string", "example": "gabriel@teste.com" } }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Código enviado" } }
+      }
+    },
+    "/tokens/verify": {
+      "post": {
+        "summary": "Valida o código de verificação",
+        "tags": ["Tokens (2FA)"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "informedCode": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Conta verificada" } }
+      }
+    }
+  }
+}
