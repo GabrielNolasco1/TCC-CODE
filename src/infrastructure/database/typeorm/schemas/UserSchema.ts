@@ -26,6 +26,9 @@ export class UserSchema {
   @JoinColumn({ name: "area_id" })
   area!: AreaSchema;
 
+  @Column({ name: "is_approved", default: false })
+  isApproved!: boolean;
+
   @Column({ type: "enum", enum: AccessRole })
   access!: AccessRole;
 

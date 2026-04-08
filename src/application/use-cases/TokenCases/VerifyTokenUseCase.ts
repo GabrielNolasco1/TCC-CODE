@@ -8,39 +8,39 @@ export type VerifyTokenDTO = {
 };
 
 export class VerifyTokenUseCase {
-    constructor(
-        private tokenRepository: ITokenRepository,
-        private userRepository: IUserRepository,
-    ){}
+  constructor(
+    private tokenRepository: ITokenRepository,
+    private userRepository: IUserRepository,
+  ){}
 
-    async execute(data: VerifyTokenDTO): Promise<User> {
-        
-        const user = await this.userRepository.findByEmail(data.email);
-        if(!user) {
-            throw new Error("User does not exist with this e-mail.");
-        }
+  async execute(data: VerifyTokenDTO): Promise<User> {
 
-        const token = await this.tokenRepository.findUserLastToken(user.id);
+    const user = await this.userRepository.findByEmail(data.email);
+    if(!user) {
+      throw new Error("User does not exist with this e-mail.");
+    }
 
-        if(!token) {
-            throw new Error("No token was found for this user.");
-        }
+      const token = await this.tokenRepository.findUserLastToken(user.id);
 
-        const isCodeCorrect = token.code === data.informedCode;
-        const isNotExpired = new Date(token.expiresIn).getTime() > new Date().getTime();
+    if(!token) {
+      throw new Error("No token was found for this user.");
+    }
 
-        if(!isCodeCorrect) {
-            throw new Error("The code provided is incorrect.");
-        }
+    const isCodeCorrect = token.code === data.informedCode;
+    const isNotExpired = new Date(token.expiresIn).getTime() > new Date().getTime();
 
-        if(!isNotExpired) {
-            throw new Error("The code has expired.");
-        }
+    if(!isCodeCorrect) {
+      throw new Error("The code provided is incorrect.");
+    }
 
-        user.valid = ValidationStatus.VALID;
+    if(!isNotExpired) {
+      throw new Error("The code has expired.");
+    }
 
-        const updatedUser = await this.userRepository.save(user);
+    user.valid = ValidationStatus.VALID;
 
-        return updatedUser;
+    const updatedUser = await this.userRepository.save(user);
+
+    return updatedUser;
   }
 }

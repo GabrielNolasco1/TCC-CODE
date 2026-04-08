@@ -25,6 +25,7 @@ export class User {
   public updatedAt: Date;
   public areaId: string | null;
   public areaName?: string;
+  public isApproved: boolean;
 
   constructor(props: {
     id?: string;
@@ -39,17 +40,19 @@ export class User {
     updatedAt?: Date;
     areaId?: string | null;
     areaName?: string;
+    isApproved?: boolean;
   }) {
     this.id = props.id ?? randomUUID();
     this.name = props.name;
     this.email = props.email;
     this.passwordHash = props.passwordHash;
-    this.approvalLevel = props.approvalLevel ?? 1; 
+    this.approvalLevel = props.approvalLevel ?? 1;
     this.access = props.access ?? AccessRole.USER;
     this.valid = props.valid ?? ValidationStatus.NOT_VALID;
     this.firstLogin = props.firstLogin ?? true;
     this.areaId = props.areaId ?? null;
     this.areaName = props.areaName;
+    this.isApproved = props.isApproved ?? false;
     this.createdAt = props.createdAt ?? new Date();
     this.updatedAt = props.updatedAt ?? new Date();
   }

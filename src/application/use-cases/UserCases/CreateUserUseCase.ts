@@ -28,7 +28,7 @@ export class CreateUserUseCase {
 
     const totalUsers = await this.userRepository.count();
     const isFirstUser = totalUsers === 0;
-    
+
     const passwordHash = await this.hashProvider.hash(data.password);
 
     const user = new User({
@@ -37,6 +37,7 @@ export class CreateUserUseCase {
       passwordHash: passwordHash,
       access: isFirstUser ? AccessRole.MASTER : AccessRole.USER,
       areaId: isFirstUser ? null : (data.areaId || null),
+      isApproved: isFirstUser ? true : false,
     });
 
     return await this.userRepository.save(user);

@@ -13,15 +13,15 @@ export class UserRepository implements IUserRepository {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const schema = await this.ormRepository.findOne({ 
+    const schema = await this.ormRepository.findOne({
       where: { email },
-      relations: ["area"], 
+      relations: ["area"],
     });
     return schema ? UserMapper.toDomain(schema) : null;
   }
 
   async findById(id: string): Promise<User | null> {
-    const schema = await this.ormRepository.findOne({ 
+    const schema = await this.ormRepository.findOne({
       where: { id },
       relations: ["area"],
     });
@@ -36,5 +36,21 @@ export class UserRepository implements IUserRepository {
     const persistenceData = UserMapper.toPersistence(user);
     const savedSchema = await this.ormRepository.save(persistenceData);
     return UserMapper.toDomain(savedSchema);
+  }
+
+  async findApproverByLevel(areaId: string, approvalLevel: number): Promise<User | null> {
+    const schema = await this.ormRepository.findOne({
+      where: { areaId, approvalLevel },
+      order: { createdAt: "ASC" }
+    });
+    return schema ? UserMapper.toDomain(schema) : null;
+  }
+
+  async findAll(): Promise<User[]> {
+    const ormUsers = await this.ormRepository.find({
+      relations: ["area"] // Importante para o areaName aparecer
+    });
+
+    return ormUsers.map(ormUser => UserMapper.toDomain(ormUser));
   }
 }

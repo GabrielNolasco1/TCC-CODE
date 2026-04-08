@@ -1,20 +1,24 @@
 import { IUserRepository } from "@/domain/repositories/IUserRepository";
 import { IHashProvider } from "@/application/providers/IHashProvider";
-import { User } from "@/domain/entities/User";
+import { ITokenProvider } from "@/application/providers/ITokenProvider"; // Importe o Provider
+import { User, ValidationStatus } from "@/domain/entities/User";
 
 export type AuthenticateUserDTO = {
   email: string;
   password: string;
 };
 
+// Agora a resposta precisa incluir o token
 export type AuthenticateUserResponse = {
   user: User;
+  token: string;
 };
 
 export class AuthenticateUserUseCase {
   constructor(
     private userRepository: IUserRepository,
-    private hashProvider: IHashProvider
+    private hashProvider: IHashProvider,
+    private tokenProvider: ITokenProvider
   ) {}
 
   async execute(data: AuthenticateUserDTO): Promise<AuthenticateUserResponse> {
@@ -25,7 +29,7 @@ export class AuthenticateUserUseCase {
     }
 
     const passwordMatch = await this.hashProvider.compare(
-      data.password, 
+      data.password,
       user.passwordHash
     );
 
@@ -33,6 +37,23 @@ export class AuthenticateUserUseCase {
       throw new Error("Invalid credentials.");
     }
 
-    return { user };
+    if (user.valid === ValidationStatus.NOT_VALID) {
+      throw new Error("USER_NOT_VALIDATED");
+    }
+
+    console.log(user);
+    console.log("User approval status:", user.isApproved);
+    if (!user.isApproved) {
+      throw new Error("USER_NOT_APPROVED");
+    }
+
+
+    const token = this.tokenProvider.generate(
+      user.id,
+      user.access,
+      user.areaId
+    );
+
+    return { user, token };
   }
 }

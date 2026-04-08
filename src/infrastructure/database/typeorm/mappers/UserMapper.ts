@@ -15,7 +15,8 @@ export class UserMapper {
       createdAt: schema.createdAt,
       updatedAt: schema.updatedAt,
       areaId: schema.areaId,
-      areaName: schema.area ? schema.area.name : undefined 
+      areaName: schema.area ? schema.area.name : undefined,
+      isApproved: schema.isApproved
     });
   }
 
@@ -29,7 +30,8 @@ export class UserMapper {
       valid: user.valid,
       areaId: user.areaId,
       approvalLevel: user.approvalLevel,
-      firstLogin: user.firstLogin
+      firstLogin: user.firstLogin,
+      isApproved: user.isApproved
     };
   }
 }
