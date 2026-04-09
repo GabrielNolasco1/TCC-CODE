@@ -1,7 +1,7 @@
 import { ITokenRepository } from "@/domain/repositories/ITokenRepository";
 import { IUserRepository } from "@/domain/repositories/IUserRepository";
 import { ITokenGeneratorProvider } from "@/application/providers/ITokenGeneratorProvider";
-import { IMailProvider } from "@/application/providers/IMailProvider"; // O novo contrato
+import { IMailProvider } from "@/application/providers/IMailProvider";
 import { Token } from "@/domain/entities/Token";
 
 export type CreateTokenDTO = {
@@ -17,7 +17,7 @@ export class CreateTokenUseCase {
     ){}
 
     async execute(data: CreateTokenDTO): Promise<Token>{
-        
+
         const user = await this.userRepository.findByEmail(data.email);
         if(!user) {
             throw new Error("User does not exist with this e-mail.");
@@ -29,14 +29,14 @@ export class CreateTokenUseCase {
         expiresIn.setMinutes(expiresIn.getMinutes() + 5);
 
         const tokenToSave = new Token({
-            code,   
+            code,
             userId: user.id,
             expiresIn,
         });
 
         const savedToken = await this.tokenRepository.save(tokenToSave);
 
-        await this.mailProvider.sendMail({
+        this.mailProvider.sendMail({
             to: user.email,
             subject: "Seu Código de Acesso",
             body: `
@@ -44,6 +44,8 @@ export class CreateTokenUseCase {
                 <p>Seu código de verificação é: <strong>${code}</strong></p>
                 <p>Este código expira em 5 minutos.</p>
             `
+        }).catch((error) => {
+            console.error(`[Aviso] Falha ao enviar e-mail em background para ${user.email}:`, error);
         });
 
         return savedToken;
