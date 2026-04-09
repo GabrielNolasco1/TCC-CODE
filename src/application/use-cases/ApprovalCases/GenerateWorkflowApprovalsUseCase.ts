@@ -17,6 +17,7 @@ export class GenerateWorkflowApprovalsUseCase {
     const approvalsToSave: Approval[] = [];
     let currentOrder = 1;
 
+    // Busca a configuração definida pelo usuário para esta solicitação
     const config = await this.configRepo.findBySolicitationId(solicitationId);
 
     if (config && config.necessaryApproverLevel) {

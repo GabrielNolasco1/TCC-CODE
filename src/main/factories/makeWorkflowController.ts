@@ -12,6 +12,8 @@ import { CreateWorkflowUseCase } from "@/application/use-cases/WorkflowCases/Cre
 import { ListWorkflowsByUserUseCase } from "@/application/use-cases/WorkflowCases/ListWorkflowsByUserUseCase";
 import { GetWorkflowDetailUseCase } from "@/application/use-cases/WorkflowCases/GetWorkflowDetailUseCase";
 import { GenerateWorkflowApprovalsUseCase } from "@/application/use-cases/ApprovalCases/GenerateWorkflowApprovalsUseCase";
+import { AreaRepository } from "@/infrastructure/database/typeorm/repositories/AreaRepository";
+import { ListManagementWorkflowsUseCase } from "@/application/use-cases/WorkflowCases/ListManagementWorkflowsUseCase";
 
 export const makeWorkflowController = (): WorkflowController => {
   const workflowRepo = new WorkflowRepository();
@@ -22,9 +24,14 @@ export const makeWorkflowController = (): WorkflowController => {
   const configRepo = new ApprovalConfigRepository();
   const flowRepo = new ApprovalFlowRepository();
   const userRepo = new UserRepository();
+  const areaRepo = new AreaRepository();
 
   const generateApprovals = new GenerateWorkflowApprovalsUseCase(
     approvalRepo, configRepo, flowRepo, userRepo
+  );
+
+  const listManagementUseCase = new ListManagementWorkflowsUseCase(
+    workflowRepo, userRepo, solicitationRepo, areaRepo
   );
 
   const createUseCase = new CreateWorkflowUseCase(
@@ -40,6 +47,7 @@ export const makeWorkflowController = (): WorkflowController => {
   return new WorkflowController(
     createUseCase,
     listByUserUseCase,
-    getDetailUseCase
+    getDetailUseCase,
+    listManagementUseCase
   );
 };

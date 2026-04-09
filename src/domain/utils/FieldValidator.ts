@@ -21,7 +21,7 @@ export class FieldValidator {
         return !isNaN(Date.parse(value));
 
       default:
-        return true; // text, longtext aceitam qualquer coisa
+        return true;
     }
   }
 }

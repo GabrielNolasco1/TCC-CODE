@@ -2,8 +2,8 @@
   "openapi": "3.0.0",
   "info": {
     "title": "API - Sistema de Solicitações (TCC)",
-    "version": "1.1.0",
-    "description": "API completa do TCC. Contempla Autenticação 2FA, Portaria de Usuários (Aprovação Master), Hierarquia de Cargos (1-13), Formulários Dinâmicos, Motor de Aprovação com prevenção de auto-aprovação e isolamento por área."
+    "version": "1.2.0",
+    "description": "API completa do TCC. Contempla Autenticação 2FA, Portaria de Usuários (Aprovação Master), Hierarquia de Cargos (1-13), Formulários Dinâmicos, Motor de Aprovação com prevenção de auto-aprovação, isolamento por área e Painel de Gestão Global."
   },
   "servers": [
     {
@@ -247,9 +247,9 @@
     "/workflows": {
       "get": {
         "tags": ["Workflows"],
-        "summary": "Listar Solicitações Criadas (Dashboard)",
+        "summary": "Listar Solicitações Criadas pelo Usuário (Dashboard)",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Lista de solicitações do usuário ou área" } }
+        "responses": { "200": { "description": "Lista de solicitações criadas pelo usuário logado" } }
       },
       "post": {
         "summary": "Enviar Solicitação (Criar Workflow)",
@@ -282,6 +282,15 @@
           }
         },
         "responses": { "201": { "description": "Workflow criado." } }
+      }
+    },
+    "/workflows/management": {
+      "get": {
+        "tags": ["Workflows"],
+        "summary": "Gestão de Workflows (ADMIN / MASTER)",
+        "description": "Retorna uma lista de workflows para a tela de gestão. Se MASTER, retorna tudo. Se ADMIN, retorna os workflows pertencentes à área do admin.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Lista filtrada de workflows para gestão" } }
       }
     },
     "/workflows/{id}": {

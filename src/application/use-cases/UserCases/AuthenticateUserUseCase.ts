@@ -41,8 +41,6 @@ export class AuthenticateUserUseCase {
       throw new Error("USER_NOT_VALIDATED");
     }
 
-    console.log(user);
-    console.log("User approval status:", user.isApproved);
     if (!user.isApproved) {
       throw new Error("USER_NOT_APPROVED");
     }
